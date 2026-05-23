@@ -1,0 +1,35 @@
+{
+  "name": "Deploy keepalived configuration",
+  "hosts": "vlan_hosts",
+  "become": true,
+
+  "vars_files": [
+    "vlan_vars.json"
+  ],
+
+  "tasks": [
+    {
+      "name": "Ensure keepalived is installed",
+      "package": {
+        "name": "keepalived",
+        "state": "present"
+      }
+    },
+    {
+      "name": "Deploy keepalived.conf from template",
+      "template": {
+        "src": "templates/keepalived.conf.j2",
+        "dest": "/etc/keepalived/keepalived.conf",
+        "mode": "0644"
+      }
+    },
+    {
+      "name": "Enable and restart keepalived",
+      "service": {
+        "name": "keepalived",
+        "state": "restarted",
+        "enabled": true
+      }
+    }
+  ]
+}

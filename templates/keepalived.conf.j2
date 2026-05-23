@@ -1,0 +1,14 @@
+{% for inst in vrrp_instances %}
+vrrp_instance {{ inst.name }} {
+    state {{ hostvars[inventory_hostname].keepalived_role }}
+    interface {{ hostvars[inventory_hostname][inst.iface_var] }}
+    virtual_router_id {{ lookup('vars', inst.vrid_var) }}
+    priority {{ hostvars[inventory_hostname].vrrp_priority }}
+    advert_int 1
+
+    virtual_ipaddress {
+        {{ lookup('vars', inst.vip_var) }}
+    }
+}
+
+{% endfor %}

@@ -2,14 +2,65 @@
   "vlan_hosts": {
     "hosts": {
       "methanemaker.mooo.com": {
-        "ansible_host": "192.168.0.7"
+        "ansible_host": "192.168.0.7",
+        "ansible_user": "root",
+
+        "parent_interface": "br0",
+        "vlan_ip": "172.222.0.7",
+        "keepalived_role": "MASTER",
+        "lan_iface": "br0",
+        "vlan2222_iface": "br0.2222",
+        "vrrp_priority": 200
       },
+
       "PodmanManager": {
-        "ansible_host": "192.168.0.200"
+        "ansible_host": "192.168.0.200",
+        "ansible_user": "root",
+
+        "parent_interface": "br0",
+        "vlan_ip": "172.222.0.200",
+        "keepalived_role": "MASTER",
+        "lan_iface": "br0",
+        "vlan2222_iface": "br0.2222",
+        "vrrp_priority": 200
       },
+
       "garage": {
-        "ansible_host": "192.168.0.151"
+        "ansible_host": "192.168.0.151",
+        "ansible_user": "root",
+
+        "parent_interface": "eth0",
+        "vlan_ip": "172.222.0.151",
+        "keepalived_role": "BACKUP",
+        "lan_iface": "eth0",
+        "vlan2222_iface": "eth0.2222",
+        "vrrp_priority": 150
       }
+    },
+
+    "vars": {
+      "vlan_id": 2222,
+
+      "vrrp_vip_ipv6": "fd00:1::1/64",
+      "vrrp_vip_vlan2222": "172.222.0.200/16",
+
+      "vrrp_id_ipv6": 51,
+      "vrrp_id_vlan2222": 52,
+
+      "vrrp_instances": [
+        {
+          "name": "VI_1",
+          "vip_var": "vrrp_vip_ipv6",
+          "vrid_var": "vrrp_id_ipv6",
+          "iface_var": "lan_iface"
+        },
+        {
+          "name": "VI_2",
+          "vip_var": "vrrp_vip_vlan2222",
+          "vrid_var": "vrrp_id_vlan2222",
+          "iface_var": "vlan2222_iface"
+        }
+      ]
     }
   }
 }
