@@ -1,0 +1,15 @@
+{
+  "vlan_hosts": {
+    "hosts": {
+      "methanemaker.mooo.com": {
+        "ansible_host": "192.168.0.7"
+      },
+      "PodmanManager": {
+        "ansible_host": "192.168.0.200"
+      },
+      "garage": {
+        "ansible_host": "192.168.0.151"
+      }
+    }
+  }
+}

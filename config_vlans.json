@@ -1,0 +1,23 @@
+{
+  "name": "Configure VLANs on hosts",
+  "hosts": "vlan_hosts",
+  "become": true,
+  "vars_files": [
+    "vlan_vars.json"
+  ],
+  "tasks": [
+    {
+      "name": "Create VLAN interface",
+      "community.general.nmcli": {
+        "type": "vlan",
+        "conn_name": "vlan{{ vlan_id }}",
+        "ifname": "vlan{{ vlan_id }}",
+        "vlan_id": "{{ vlan_id }}",
+        "parent": "{{ hostvars[inventory_hostname].parent_interface }}",
+        "state": "present",
+        "ip4": "{{ hostvars[inventory_hostname].vlan_ip }}/24",
+        "method4": "manual"
+      }
+    }
+  ]
+}

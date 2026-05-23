@@ -1,0 +1,17 @@
+{
+  "vlan_id": 2222,
+  "hosts": {
+    "methanemaker.mooo.com": {
+      "parent_interface": "br0",
+      "vlan_ip": "172.222.0.7"
+    },
+    "PodmanManager": {
+      "parent_interface": "br0",
+      "vlan_ip": "172.222.0.200"
+    },
+    "garage": {
+      "parent_interface": "eth0",
+      "vlan_ip": "172.222.0.151"
+    }
+  }
+}
