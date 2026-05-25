@@ -9,8 +9,9 @@
         "debug": {
           "msg": {
             "host": "{{ inventory_hostname }}",
-            "vlan_ip": "{{ hostvars[inventory_hostname].vlan_ip | default('MISSING') }}",
-            "parent_interface": "{{ hostvars[inventory_hostname].parent_interface | default('MISSING') }}"
+            "vlan_ip": "{{ vlan_ip | default('MISSING') }}",
+            "parent_interface": "{{ parent_interface | default('MISSING') }}",
+            "vlan_id": "{{ vlan_id }}"
           }
         }
       },
@@ -19,14 +20,15 @@
         "community.general.nmcli": {
           "type": "vlan",
           "conn_name": "vlan{{ vlan_id }}",
-          "ifname": "{{ hostvars[inventory_hostname].parent_interface }}.{{ vlan_id }}",
-          "vlandev": "{{ hostvars[inventory_hostname].parent_interface }}",
+          "ifname": "{{ parent_interface }}.{{ vlan_id }}",
+          "vlandev": "{{ parent_interface }}",
           "vlanid": "{{ vlan_id }}",
-          "ip4": "{{ hostvars[inventory_hostname].vlan_ip }}/24",
+          "ip4": "{{ vlan_ip }}/16",
           "method4": "manual",
           "autoconnect": true,
           "state": "present"
-        }
+        },
+        "when": "parent_interface is defined and vlan_ip is defined"
       }
     ]
   }

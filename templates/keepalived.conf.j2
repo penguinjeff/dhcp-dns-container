@@ -9,6 +9,9 @@ vrrp_instance {{ inst.name }} {
     virtual_ipaddress {
         {{ lookup('vars', inst.vip_var) }}
     }
-}
 
+    notify_master "/usr/local/bin/ha-master.sh"
+    notify_backup "/usr/local/bin/ha-backup.sh"
+    notify_fault  "/usr/local/bin/ha-fault.sh"
+}
 {% endfor %}

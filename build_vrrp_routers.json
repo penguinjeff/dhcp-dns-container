@@ -1,22 +1,23 @@
 [
   {
-    "name": "Build VRRP Routers",
-    "hosts": "vlan_hosts",
+    "name": "Build VRRP routers",
+    "hosts": "vrrp_routers",
     "become": true,
     "tasks": [
-
       {
-        "name": "Install keepalived",
+        "name": "Install keepalived and iptables",
         "package": {
-          "name": "keepalived",
+          "name": [
+            "keepalived",
+            "iptables"
+          ],
           "state": "present"
         }
       },
 
       {
         "name": "Enable IPv4 forwarding",
-        "sysctl":
-        {
+        "ansible.posix.sysctl": {
           "name": "net.ipv4.ip_forward",
           "value": "1",
           "state": "present",
@@ -25,40 +26,24 @@
       },
 
       {
-        "name": "Ensure NAT masquerade rule exists",
-        "ansible.builtin.command": "iptables -t nat -C POSTROUTING -o {{ hostvars[inventory_hostname].lan_iface }} -j MASQUERADE",
-        "register": "nat_check",
-        "ignore_errors": true
-      },
-
-      {
-        "name": "Add NAT masquerade rule if missing",
-        "ansible.builtin.command": "iptables -t nat -A POSTROUTING -o {{ hostvars[inventory_hostname].lan_iface }} -j MASQUERADE",
-        "when": "nat_check.rc != 0"
-      },
-
-      {
-        "name": "Persist iptables NAT rule",
-        "copy": {
-          "dest": "/etc/iptables.rules",
-          "content": "iptables -t nat -A POSTROUTING -o {{ hostvars[inventory_hostname].lan_iface }} -j MASQUERADE\n"
+        "name": "Enable IPv6 forwarding (optional)",
+        "ansible.posix.sysctl": {
+          "name": "net.ipv6.conf.all.forwarding",
+          "value": "1",
+          "state": "present",
+          "reload": true
         }
       },
-
       {
-        "name": "Load iptables rules on boot",
-        "copy": {
-          "dest": "/etc/systemd/system/iptables-restore.service",
-          "content": "[Unit]\nDescription=Restore iptables rules\n\n[Service]\nType=oneshot\nExecStart=/usr/sbin/iptables-restore /etc/iptables.rules\n\n[Install]\nWantedBy=multi-user.target\n"
-        }
+        "name": "Ensure NAT for 172.222.0.0/16 is present",
+        "shell": "iptables -t nat -C POSTROUTING -s 172.222.0.0/16 -j MASQUERADE || iptables -t nat -A POSTROUTING -s 172.222.0.0/16 -j MASQUERADE"
       },
-
       {
-        "name": "Enable iptables restore service",
-        "systemd": {
-          "name": "iptables-restore.service",
-          "enabled": true,
-          "state": "started"
+        "name": "Create keepalived config directory",
+        "file": {
+          "path": "/etc/keepalived",
+          "state": "directory",
+          "mode": "0755"
         }
       },
 
@@ -66,16 +51,17 @@
         "name": "Deploy keepalived configuration",
         "template": {
           "src": "keepalived.conf.j2",
-          "dest": "/etc/keepalived/keepalived.conf"
+          "dest": "/etc/keepalived/keepalived.conf",
+          "mode": "0644"
         }
       },
 
       {
         "name": "Enable and start keepalived",
-        "systemd": {
+        "service": {
           "name": "keepalived",
-          "enabled": true,
-          "state": "restarted"
+          "state": "started",
+          "enabled": true
         }
       }
     ]
