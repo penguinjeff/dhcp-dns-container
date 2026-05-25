@@ -15,16 +15,17 @@
         }
       },
       {
-        "name": "Create VLAN interface",
+        "name": "Create persistent VLAN interface",
         "community.general.nmcli": {
           "type": "vlan",
           "conn_name": "vlan{{ vlan_id }}",
-          "ifname": "vlan{{ vlan_id }}",
+          "ifname": "{{ hostvars[inventory_hostname].parent_interface }}.{{ vlan_id }}",
           "vlandev": "{{ hostvars[inventory_hostname].parent_interface }}",
           "vlanid": "{{ vlan_id }}",
-          "state": "present",
           "ip4": "{{ hostvars[inventory_hostname].vlan_ip }}/24",
-          "method4": "manual"
+          "method4": "manual",
+          "autoconnect": true,
+          "state": "present"
         }
       }
     ]
