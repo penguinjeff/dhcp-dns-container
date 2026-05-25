@@ -1,0 +1,83 @@
+[
+  {
+    "name": "Build VRRP Routers",
+    "hosts": "vlan_hosts",
+    "become": true,
+    "tasks": [
+
+      {
+        "name": "Install keepalived",
+        "package": {
+          "name": "keepalived",
+          "state": "present"
+        }
+      },
+
+      {
+        "name": "Enable IPv4 forwarding",
+        "sysctl":
+        {
+          "name": "net.ipv4.ip_forward",
+          "value": "1",
+          "state": "present",
+          "reload": true
+        }
+      },
+
+      {
+        "name": "Ensure NAT masquerade rule exists",
+        "ansible.builtin.command": "iptables -t nat -C POSTROUTING -o {{ hostvars[inventory_hostname].lan_iface }} -j MASQUERADE",
+        "register": "nat_check",
+        "ignore_errors": true
+      },
+
+      {
+        "name": "Add NAT masquerade rule if missing",
+        "ansible.builtin.command": "iptables -t nat -A POSTROUTING -o {{ hostvars[inventory_hostname].lan_iface }} -j MASQUERADE",
+        "when": "nat_check.rc != 0"
+      },
+
+      {
+        "name": "Persist iptables NAT rule",
+        "copy": {
+          "dest": "/etc/iptables.rules",
+          "content": "iptables -t nat -A POSTROUTING -o {{ hostvars[inventory_hostname].lan_iface }} -j MASQUERADE\n"
+        }
+      },
+
+      {
+        "name": "Load iptables rules on boot",
+        "copy": {
+          "dest": "/etc/systemd/system/iptables-restore.service",
+          "content": "[Unit]\nDescription=Restore iptables rules\n\n[Service]\nType=oneshot\nExecStart=/usr/sbin/iptables-restore /etc/iptables.rules\n\n[Install]\nWantedBy=multi-user.target\n"
+        }
+      },
+
+      {
+        "name": "Enable iptables restore service",
+        "systemd": {
+          "name": "iptables-restore.service",
+          "enabled": true,
+          "state": "started"
+        }
+      },
+
+      {
+        "name": "Deploy keepalived configuration",
+        "template": {
+          "src": "keepalived.conf.j2",
+          "dest": "/etc/keepalived/keepalived.conf"
+        }
+      },
+
+      {
+        "name": "Enable and start keepalived",
+        "systemd": {
+          "name": "keepalived",
+          "enabled": true,
+          "state": "restarted"
+        }
+      }
+    ]
+  }
+]
