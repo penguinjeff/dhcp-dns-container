@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Test merged inventory variables",
+    "hosts": "all",
+    "gather_facts": false,
+    "tasks": [
+      {
+        "name": "Show inventory_hostname",
+        "debug": {
+          "msg": "Testing host: {{ inventory_hostname }}"
+        }
+      },
+      {
+        "name": "Show VLAN host variables",
+        "debug": {
+          "var": "hostvars[inventory_hostname].vlan_ip"
+        }
+      },
+      {
+        "name": "Show VRRP role",
+        "debug": {
+          "var": "hostvars[inventory_hostname].keepalived_role"
+        }
+      },
+      {
+        "name": "Show normal containers",
+        "debug": {
+          "var": "hostvars[inventory_hostname].normal_containers"
+        }
+      },
+      {
+        "name": "Show HA containers",
+        "debug": {
+          "var": "hostvars[inventory_hostname].ha_containers"
+        }
+      },
+      {
+        "name": "Show DHCP networks (global)",
+        "run_once": true,
+        "debug": {
+          "var": "dhcp.networks"
+        }
+      }
+    ]
+  }
+]

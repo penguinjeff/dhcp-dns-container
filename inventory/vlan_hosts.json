@@ -1,0 +1,27 @@
+{
+  "vlan_hosts": {
+    "hosts": {
+      "methanemaker.mooo.com": {
+        "ansible_host": "192.168.0.7",
+        "ansible_user": "root",
+        "parent_interface": "br0",
+        "vlan_ip": "172.222.0.7"
+      },
+      "PodmanManager": {
+        "ansible_host": "192.168.0.200",
+        "ansible_user": "root",
+        "parent_interface": "br0",
+        "vlan_ip": "172.222.0.200"
+      },
+      "garage": {
+        "ansible_host": "192.168.0.151",
+        "ansible_user": "root",
+        "parent_interface": "eth0",
+        "vlan_ip": "172.222.0.151"
+      }
+    },
+    "vars": {
+      "vlan_id": 2222
+    }
+  }
+}

@@ -1,0 +1,71 @@
+[
+  {
+    "name": "Container Manager",
+    "hosts": "all",
+    "become": true,
+
+    "pre_tasks": [
+      {
+        "name": "Detect git root",
+        "include_role": { "name": "git_root" }
+      },
+      {
+        "name": "Install update_podman_containers.sh",
+        "include_role": { "name": "container_update_script" }
+      },
+      {
+        "name": "Compute containers_for_host safely",
+        "set_fact": {
+          "containers_for_host": "{{ containers.hosts.get(inventory_hostname, {}).normal_containers | default([]) }}"
+        }
+      }
+    ],
+
+    "tasks": [
+      {
+        "name": "Ensure containers-enabled directory exists",
+        "file": {
+          "path": "{{ ansible_env.HOME }}/containers-enabled",
+          "state": "directory",
+          "mode": "0755"
+        }
+      },
+      {
+        "name": "Ensure normal directory exists",
+        "file": {
+          "path": "{{ ansible_env.HOME }}/containers-enabled/normal",
+          "state": "directory",
+          "mode": "0755"
+        }
+      },
+
+      {
+        "name": "Stat container directory",
+        "loop": "{{ containers_for_host }}",
+        "vars": {
+          "container_name": "{{ item }}",
+          "container_dir": "{{ ansible_env.HOME }}/docker-compose-configs/{{ item }}"
+        },
+        "stat": {
+          "path": "{{ container_dir }}"
+        },
+        "register": "container_stats"
+      },
+
+      {
+        "name": "Link container if directory exists",
+        "loop": "{{ container_stats.results }}",
+        "vars": {
+          "container_name": "{{ item.item }}",
+          "container_dir": "{{ ansible_env.HOME }}/docker-compose-configs/{{ item.item }}"
+        },
+        "file": {
+          "src": "{{ container_dir }}",
+          "dest": "{{ ansible_env.HOME }}/containers-enabled/normal/{{ container_name }}",
+          "state": "link"
+        },
+        "when": "item.stat.exists and (item.stat.isdir | default(false)) and item.item != 'home_web'"
+      }
+    ]
+  }
+]

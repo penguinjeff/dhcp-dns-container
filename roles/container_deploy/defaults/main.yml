@@ -1,0 +1,2 @@
+containerfile_src: "{{ git_root }}/docker-compose-configs/{{ container_name }}/Containerfile"
+compose_src: "{{ git_root }}/docker-compose-configs/{{ container_name }}/docker-compose.yml"

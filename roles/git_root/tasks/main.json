@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Detect Git root on controller",
+    "delegate_to": "localhost",
+    "run_once": true,
+    "become": false,
+    "command": "git rev-parse --show-toplevel",
+    "register": "git_root_cmd",
+    "changed_when": false
+  },
+  {
+    "name": "Set git_root fact",
+    "become": false,
+    "set_fact": {
+      "git_root": "{{ git_root_cmd.stdout }}"
+    }
+  }
+]

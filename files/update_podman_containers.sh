@@ -1,80 +1,72 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-LOGDIR="/var/log/podman-updates"
-mkdir -p "$LOGDIR"
+BASE_DIR="$HOME/docker-compose-configs"
+ENABLED_DIR="$BASE_DIR/containers-enabled"
+LOG_DIR="$HOME/container-logs"
+mkdir -p "$LOG_DIR"
 
-LAN_IFACE="br0"        # VRRP interface
-VIP="fd00:1::1"        # VRRP virtual IPv6 address
-
-LASTRUN="$LOGDIR/last-run.log"
-: > "$LASTRUN"
-echo "Last update run: $(date)" >> "$LASTRUN"
-echo >> "$LASTRUN"
-
-function status() {
-    echo "$1" >> "$LASTRUN"
-}
-
-function is_master() {
-    ip -6 addr show "$LAN_IFACE" | grep -q "$VIP"
-}
-
-function pull_and_reboot() {
-    local name="$1"
-    local cfgdir="$HOME/docker-compose-configs/$name"
-    local compose="$cfgdir/docker-compose.yml"
-
-    local logf="$LOGDIR/${name}.log"
-    : > "$logf"
-
-    status "=== Updating $name ==="
-
-    # Extract images
-    local images
-    images=$(grep -E "image:" "$compose" | awk '{print $2}' | sort -u)
-
-    status "Images: $images"
-
-    # Pull images
-    for img in $images; do
-        status "Pulling $img..."
-        podman pull "$img" >> "$logf" 2>&1
-    done
-
-    # Restart stack
-    status "Restarting $name..."
-    cd "$cfgdir"
-    podman-compose down >> "$logf" 2>&1
-    podman-compose up -d --remove-orphans >> "$logf" 2>&1
-
-    status "=== Done with $name ==="
-    echo >> "$LASTRUN"
-}
-
-NORMAL_DIR="$HOME/containers-enabled/normal"
-HA_DIR="$HOME/containers-enabled/ha"
-
-normal_services=$(basename -a "$NORMAL_DIR"/* 2>/dev/null || true)
-ha_services=$(basename -a "$HA_DIR"/* 2>/dev/null || true)
-
-status "Normal services: $normal_services"
-status "HA services: $ha_services"
-
-# Update normal services on ALL hosts
-for svc in $normal_services; do
-    pull_and_reboot "$svc" &
-done
-
-# Update HA services ONLY on BACKUP
-if is_master; then
-    status "Skipping HA services on MASTER"
-else
-    status "Updating HA services on BACKUP"
-    for svc in $ha_services; do
-        pull_and_reboot "$svc" &
-    done
+KEEPALIVED_ROLE_FILE="$BASE_DIR/keepalived_role"
+ROLE="UNKNOWN"
+if [[ -f "$KEEPALIVED_ROLE_FILE" ]]; then
+    ROLE=$(cat "$KEEPALIVED_ROLE_FILE")
 fi
 
+# CASE 1: No args → update ALL linked containers
+# CASE 2: Args → update ONLY those containers
+if [[ $# -gt 0 ]]; then
+    TARGET_CONTAINERS=("$@")
+else
+    TARGET_CONTAINERS=($(ls "$ENABLED_DIR"))
+fi
+
+echo "Host HA role: $ROLE"
+echo "Updating containers (parallel): ${TARGET_CONTAINERS[*]}"
+
+update_container() {
+    local name="$1"
+    local dir="$ENABLED_DIR/$name"
+
+    # Skip if container is not linked/enabled
+    if [[ ! -d "$dir" ]]; then
+        echo "Skipping $name (not enabled on this host)"
+        return
+    fi
+
+    # HA container logic
+    if [[ -f "$dir/HA_CONTAINER" ]]; then
+        if [[ "$ROLE" == "MASTER" ]]; then
+            echo "Updating HA container $name (MASTER host, will NOT start)"
+            (
+                cd "$dir"
+                podman-compose pull
+            ) &> "$LOG_DIR/$name.log"
+            return
+        else
+            echo "Updating HA container $name (BACKUP host, will start)"
+            (
+                cd "$dir"
+                podman-compose pull
+                podman-compose up -d
+            ) &> "$LOG_DIR/$name.log"
+            return
+        fi
+    fi
+
+    # Non-HA container logic
+    echo "Updating non-HA container $name"
+    (
+        cd "$dir"
+        podman-compose pull
+        podman-compose up -d
+    ) &> "$LOG_DIR/$name.log"
+}
+
+# Run all updates in parallel
+for c in "${TARGET_CONTAINERS[@]}"; do
+    update_container "$c" &
+done
+
 wait
-status "All updates completed."
+
+echo "All updates complete (parallel mode)."

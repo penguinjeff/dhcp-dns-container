@@ -1,0 +1,25 @@
+{
+  "dhcp": {
+    "networks": {
+      "vlan2222": {
+        "subnet": "172.222.0.0",
+        "netmask": "255.255.0.0",
+
+        "scope_start": "172.222.2.0",
+        "scope_end": "172.222.3.255",
+
+        "router": "172.222.0.1",
+        "dns_servers": ["172.222.0.1"],
+
+        "boot_server": "172.222.0.1",
+        "boot_file": "ipxe.efi",
+
+        "extra_options": {
+          "60": "PXEClient",
+          "210": "http://172.222.0.1/boot/",
+          "211": "0"
+        }
+      }
+    }
+  }
+}

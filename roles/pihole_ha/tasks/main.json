@@ -1,0 +1,13 @@
+{
+  "tasks": [
+    {
+      "name": "Deploy pihole-ha only on HA hosts",
+      "when": "'pihole-ha' in hostvars[inventory_hostname].ha_containers",
+      "copy": {
+        "src": "files/pihole-ha/",
+        "dest": "{{ ansible_env.HOME }}/docker-compose-configs/pihole-ha/",
+        "mode": "0644"
+      }
+    }
+  ]
+}

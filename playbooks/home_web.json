@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Deploy home_web container",
+    "hosts": "all",
+    "become": true,
+    "vars": {
+      "container_name": "home_web",
+      "ha": false,
+      "compose_src": "files/home_web/docker-compose.yml",
+      "containerfile_src": "files/home_web/Containerfile"
+    },
+    "tasks": [
+      {
+        "name": "Run container roles for home_web",
+        "when": "containers.hosts.get(inventory_hostname) is defined and 'home_web' in containers.hosts[inventory_hostname].normal_containers",
+        "include_role": {
+          "name": "git_root"
+        }
+      },
+      {
+        "name": "Run container_links",
+        "when": "'home_web' in containers.hosts[inventory_hostname].normal_containers",
+        "include_role": {
+          "name": "container_links"
+        }
+      },
+      {
+        "name": "Run container_update_script",
+        "when": "'home_web' in containers.hosts[inventory_hostname].normal_containers",
+        "include_role": {
+          "name": "container_update_script"
+        }
+      },
+      {
+        "name": "Run container_cron",
+        "when": "'home_web' in containers.hosts[inventory_hostname].normal_containers",
+        "include_role": {
+          "name": "container_cron"
+        }
+      },
+      {
+        "name": "Run container_deploy",
+        "when": "'home_web' in containers.hosts[inventory_hostname].normal_containers",
+        "include_role": {
+          "name": "container_deploy"
+        }
+      }
+    ]
+  }
+]

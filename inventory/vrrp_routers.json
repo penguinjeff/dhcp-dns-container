@@ -1,0 +1,42 @@
+{
+  "vrrp_routers": {
+    "hosts": {
+      "PodmanManager": {
+        "keepalived_role": "MASTER",
+        "lan_iface": "br0",
+        "vlan2222_iface": "vlan2222",
+        "vrrp_priority": 200,
+        "wan_iface": "br0"
+      },
+      "garage": {
+        "keepalived_role": "BACKUP",
+        "lan_iface": "eth0",
+        "vlan2222_iface": "vlan2222",
+        "vrrp_priority": 150,
+        "wan_iface": "eth0"
+      }
+    },
+    "vars": {
+      "vrrp_vip_ipv6": "fd00:1::1/64",
+      "vrrp_vip_vlan2222": "172.222.0.1/16",
+
+      "vrrp_id_ipv6": 51,
+      "vrrp_id_vlan2222": 52,
+
+      "vrrp_instances": [
+        {
+          "name": "VI_1",
+          "vip_var": "vrrp_vip_ipv6",
+          "vrid_var": "vrrp_id_ipv6",
+          "iface_var": "lan_iface"
+        },
+        {
+          "name": "VI_2",
+          "vip_var": "vrrp_vip_vlan2222",
+          "vrid_var": "vrrp_id_vlan2222",
+          "iface_var": "vlan2222_iface"
+        }
+      ]
+    }
+  }
+}

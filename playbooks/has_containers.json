@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Test container host detection",
+    "hosts": "all",
+    "gather_facts": false,
+
+    "tasks": [
+      {
+        "name": "Compute containers_for_host safely",
+        "set_fact": {
+          "containers_for_host": "{{ containers.hosts.get(inventory_hostname, {}).normal_containers | default([]) }}"
+        }
+      },
+      {
+        "name": "Debug: list containers for this host",
+        "debug": {
+          "msg": "Host {{ inventory_hostname }} has containers: {{ containers_for_host }}"
+        }
+      },
+      {
+        "name": "Loop through containers_for_host",
+        "loop": "{{ containers_for_host }}",
+        "debug": {
+          "msg": "Host {{ inventory_hostname }} container: {{ item }}"
+        }
+      }
+    ]
+  }
+]

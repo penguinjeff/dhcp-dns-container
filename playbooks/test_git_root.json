@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Test git_root role",
+    "hosts": "localhost",
+    "connection": "local",
+    "become": false,
+    "tasks": [
+      {
+        "name": "Include git_root role",
+        "include_role": {
+          "name": "git_root"
+        }
+      },
+      {
+        "name": "Show detected git_root",
+        "debug": {
+          "msg": "git_root = {{ git_root }}"
+        }
+      }
+    ]
+  }
+]

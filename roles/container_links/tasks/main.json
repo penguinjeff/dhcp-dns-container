@@ -1,0 +1,55 @@
+[
+  {
+    "name": "Ensure containers-enabled directories exist",
+    "loop": [
+      "{{ ansible_env.HOME }}/containers-enabled",
+      "{{ ansible_env.HOME }}/containers-enabled/normal",
+      "{{ ansible_env.HOME }}/containers-enabled/ha"
+    ],
+    "file": {
+      "path": "{{ item }}",
+      "state": "directory",
+      "mode": "0755"
+    }
+  },
+  {
+    "name": "Clear old normal symlinks",
+    "with_fileglob": [
+      "{{ ansible_env.HOME }}/containers-enabled/normal/*"
+    ],
+    "file": {
+      "path": "{{ item }}",
+      "state": "absent"
+    }
+  },
+  {
+    "name": "Clear old ha symlinks",
+    "with_fileglob": [
+      "{{ ansible_env.HOME }}/containers-enabled/ha/*"
+    ],
+    "file": {
+      "path": "{{ item }}",
+      "state": "absent"
+    }
+  },
+  {
+    "name": "Create normal container symlinks",
+    "loop": "{{ hostvars[inventory_hostname].normal_containers | default([]) }}",
+    "when": "lookup('ansible.builtin.fileglob', ansible_env.HOME + '/docker-compose-configs/' + item, errors='ignore')",
+    "file": {
+      "src": "{{ ansible_env.HOME }}/docker-compose-configs/{{ item }}",
+      "dest": "{{ ansible_env.HOME }}/containers-enabled/normal/{{ item }}",
+      "state": "link"
+    }
+  },
+  {
+    "name": "Create HA container symlinks",
+    "loop": "{{ hostvars[inventory_hostname].ha_containers | default([]) }}",
+    "when": "lookup('ansible.builtin.fileglob', ansible_env.HOME + '/docker-compose-configs/' + item, errors='ignore')",
+    "file": {
+      "src": "{{ ansible_env.HOME }}/docker-compose-configs/{{ item }}",
+      "dest": "{{ ansible_env.HOME }}/containers-enabled/ha/{{ item }}",
+      "state": "link"
+    }
+  }
+]

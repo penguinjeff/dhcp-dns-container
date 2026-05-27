@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Ensure /opt/podman_scripts exists",
+    "file": {
+      "path": "/opt/podman_scripts",
+      "state": "directory",
+      "mode": "0755"
+    }
+  },
+  {
+    "name": "Install update_podman_containers.sh",
+    "copy": {
+      "src": "{{ git_root }}/files/update_podman_containers.sh",
+      "dest": "/opt/podman_scripts/update_podman_containers.sh",
+      "mode": "0755"
+    }
+  },
+  {
+    "name": "Install nightly update cron job",
+    "cron": {
+      "name": "Nightly Podman container update",
+      "user": "root",
+      "job": "/opt/podman_scripts/update_podman_containers.sh",
+      "minute": "{{ containers.hosts[inventory_hostname].update_time.split(':')[1] }}",
+      "hour": "{{ containers.hosts[inventory_hostname].update_time.split(':')[0] }}",
+      "state": "present"
+    },
+    "when": "containers.hosts.get(inventory_hostname, {}).update_time is defined"
+  }
+]

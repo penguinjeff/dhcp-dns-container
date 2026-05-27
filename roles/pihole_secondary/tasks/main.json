@@ -1,0 +1,13 @@
+{
+  "tasks": [
+    {
+      "name": "Deploy pihole-secondary only on BACKUP",
+      "when": "'pihole-secondary' in hostvars[inventory_hostname].normal_containers",
+      "copy": {
+        "src": "files/pihole-secondary/",
+        "dest": "{{ ansible_env.HOME }}/docker-compose-configs/pihole-secondary/",
+        "mode": "0644"
+      }
+    }
+  ]
+}

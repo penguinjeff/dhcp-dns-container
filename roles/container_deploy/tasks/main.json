@@ -1,0 +1,49 @@
+[
+  {
+    "name": "Ensure container config directory exists",
+    "file": {
+      "path": "{{ git_root }}/docker-compose-configs/{{ container_name }}",
+      "state": "directory",
+      "mode": "0755"
+    }
+  },
+  {
+    "name": "Copy Containerfile",
+    "copy": {
+      "src": "{{ containerfile_src }}",
+      "dest": "{{ git_root }}/docker-compose-configs/{{ container_name }}/Containerfile",
+      "mode": "0644"
+    }
+  },
+  {
+    "name": "Copy docker-compose.yml",
+    "copy": {
+      "src": "{{ compose_src }}",
+      "dest": "{{ git_root }}/docker-compose-configs/{{ container_name }}/docker-compose.yml",
+      "mode": "0644"
+    }
+  },
+  {
+    "name": "Ensure containers-enabled directory exists",
+    "file": {
+      "path": "{{ git_root }}/docker-compose-configs/containers-enabled",
+      "state": "directory",
+      "mode": "0755"
+    }
+  },
+  {
+    "name": "Ensure container is linked into containers-enabled",
+    "file": {
+      "src": "{{ git_root }}/docker-compose-configs/{{ container_name }}",
+      "dest": "{{ git_root }}/docker-compose-configs/containers-enabled/{{ container_name }}",
+      "state": "link"
+    }
+  },
+  {
+    "name": "Ensure HA marker is present or absent",
+    "file": {
+      "path": "{{ git_root }}/docker-compose-configs/{{ container_name }}/HA_CONTAINER",
+      "state": "{{ 'touch' if ha else 'absent' }}"
+    }
+  }
+]
