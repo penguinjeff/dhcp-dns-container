@@ -1,0 +1,10 @@
+{
+  "all": {
+    "hosts": {
+      "PodmanManager": {},
+      "garage": {},
+      "methanemaker.mooo.com": {}
+    }
+  }
+}
+

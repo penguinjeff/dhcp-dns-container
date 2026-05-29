@@ -1,0 +1,15 @@
+[
+  {
+    "name": "Print all variables for each host",
+    "hosts": "all",
+    "gather_facts": false,
+    "tasks": [
+      {
+        "name": "Show merged variables for this host",
+        "debug": {
+          "var": "hostvars[inventory_hostname]"
+        }
+      }
+    ]
+  }
+]

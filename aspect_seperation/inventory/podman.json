@@ -1,0 +1,11 @@
+{
+  "podman": {
+    "hosts": {
+      "PodmanManager": {"pods":["one","two"]},
+      "garage": {"pods":["three","four"]}
+    },
+    "vars": {
+      "feature_podman": true
+    }
+  }
+}
